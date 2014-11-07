@@ -7,6 +7,7 @@ import time
 
 globalTypeCounter = {}
 perSwitchTypeCounter = {}
+PERIOD = 120
 
 class OFMsgClassifier():
 
@@ -16,17 +17,32 @@ class OFMsgClassifier():
     def classify(self, pkt):
         pass
 
+
+class Cluster():
+    pass
+
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def __init__(self):
         self.time = time.time()
 
-    def temporalAnalysis(self):
+    #This routine does the temporal analysis of global statistics of OF messages
+    def globalTemporalAnalysis(self):
+        globals()
+        
         pass
 
+    #This routine does the temporal analysis of switch statistics of OF messages
+    def switchTemporalAnalysis(self):
+        pass
+
+    #This does the correlation of each switch with rest of the switches
     def temporalCorrelation(self):
+        globals()
         pass
 
+    #This handles evey pkt info received as json from the controller
     def handle(self):
         globals()
         # self.request is the TCP socket connected to the client
@@ -42,8 +58,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             print(k,j[k])
         j = json.loads(data)
 
+        #Add an entry in case of a new switch
         if j[switch] not in perSwitchTypeCounter:
             perSwitchTypeCounter[j[switch]] = {}
+        #Update pkt counters- Local and Global
         for k in j:
             if k != 'switch':
                 if k not in globalTypeCounter:
@@ -54,11 +72,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     perSwitchTypeCounter[j[switch]][k] = 1
                 else:
                     perSwitchTypeCounter[j[switch]][k] += 1
-        print(globalTypeCounter)
-        print(perSwitchTypeCounter)
-        if self.time - time.time() > 120:
+        #Every 120
+        if self.time - time.time() > PERIOD:
+            print(globalTypeCounter)
+            print(perSwitchTypeCounter)
             self.time = time.time()
-            self.temporalAnalysis()
+            self.globalTemporalAnalysis()
+            self.switchTemporalAnalysis()
             self.temporalCorrelation()
 
 
