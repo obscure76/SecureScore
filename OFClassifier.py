@@ -3,6 +3,7 @@ import socketserver
 import netifaces as ni
 import codecs
 import json
+import time
 
 globalTypeCounter = {}
 perSwitchTypeCounter = {}
@@ -16,6 +17,15 @@ class OFMsgClassifier():
         pass
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
+
+    def __init__(self):
+        self.time = time.time()
+
+    def temporalAnalysis(self):
+        pass
+
+    def temporalCorrelation(self):
+        pass
 
     def handle(self):
         globals()
@@ -46,6 +56,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     perSwitchTypeCounter[j[switch]][k] += 1
         print(globalTypeCounter)
         print(perSwitchTypeCounter)
+        if self.time - time.time() > 120:
+            self.time = time.time()
+            self.temporalAnalysis()
+            self.temporalCorrelation()
 
 
 if __name__ == "__main__":
