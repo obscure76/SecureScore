@@ -1,15 +1,16 @@
 __author__ = 'obscure'
 import socketserver
 import netifaces as ni
-import codecs
 import json
 import time
+from sklearn.cluster import KMeans
 
 oldGlobalTypeCounter = {}
 globalTypeCounter = {}
 oldPerSwitchTypeCounter = {}
 perSwitchTypeCounter = {}
 PERIOD = 120
+
 
 class OFMsgClassifier():
 
@@ -61,8 +62,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     #This does the correlation of each switch with rest of the switches
     def temporalCorrelation(self):
-        globals()
-        pass
+        global perSwitchTypeCounter
+        correlation = {}
+        for sw1 in perSwitchTypeCounter:
+            for sw2 in perSwitchTypeCounter:
+                correlation[sw1][sw2] = 0
+                for typ in perSwitchTypeCounter[sw1]:
+                    if typ in perSwitchTypeCounter[sw2]:
+                        correlation[sw1][sw2] += perSwitchTypeCounter[sw1][typ]*perSwitchTypeCounter[sw2][typ]
+
 
     #This handles evey pkt info received as json from the controller
     def handle(self):
