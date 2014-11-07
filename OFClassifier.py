@@ -5,6 +5,7 @@ import codecs
 import json
 import time
 
+oldGlobalTypeCounter = {}
 globalTypeCounter = {}
 perSwitchTypeCounter = {}
 PERIOD = 120
@@ -26,12 +27,20 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def __init__(self):
         self.time = time.time()
+        self.count = 0
 
     #This routine does the temporal analysis of global statistics of OF messages
     def globalTemporalAnalysis(self):
-        globals()
-        
-        pass
+        global oldGlobalTypeCounter, globalTypeCounter
+        if self.count == 0:
+            for type in globalTypeCounter:
+                oldGlobalTypeCounter[type] = globalTypeCounter[type]
+        else:
+            change = {}
+            for type in oldGlobalTypeCounter:
+                change[type] = globalTypeCounter[type] - oldGlobalTypeCounter[type]
+        for type in  globalTypeCounter:
+            oldGlobalTypeCounter[type] = globalTypeCounter[type]
 
     #This routine does the temporal analysis of switch statistics of OF messages
     def switchTemporalAnalysis(self):
@@ -50,7 +59,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         switch = 'switch'
         #print ("{} wrote:",format(self.client_address[0]))
         print (self.data)
-        reader = codecs.getreader("utf-8")
         data = self.data.decode('utf-8')
         print(data)
         j = json.loads(data)
@@ -80,6 +88,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             self.globalTemporalAnalysis()
             self.switchTemporalAnalysis()
             self.temporalCorrelation()
+            if self.count == 0:
+                self.count = 1
+
 
 
 if __name__ == "__main__":
