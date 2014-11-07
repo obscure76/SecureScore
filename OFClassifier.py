@@ -15,14 +15,44 @@ PERIOD = 120
 class OFMsgClassifier():
 
     def __init__(self):
-        pass
+        self.cluster = Cluster()
 
-    def classify(self, pkt):
-        pass
+    def findDistance(self, v1, v2):
+        types = set(v1.keys())
+        types.intersection(v2.keys())
+        dist = {}
+        sumOfSquares = 0.0
+        for typ in types:
+            dist[typ] = (v1[typ] - v2[typ]) * (v1[typ] - v2[typ])
+            sumOfSquares += dist[typ]
+        return sumOfSquares
+
+    def classify(self, data):
+        self.cluster.trainGoodData()
+        self.cluster.trainBadData()
+        distGG = self.findDistance(self.cluster.globalGG, data)
+        distBG = self.findDistance(self.cluster.globalBG, data)
+        if distGG >= distBG:
+            #Good data point
+            pass
+        else:
+            #Bad data point
+            pass
 
 
 class Cluster():
-    pass
+
+    def __init__(self):
+        self.globalGG = {}
+        self.globalBG = {}
+
+    def trainGoodData(self):
+        #Train Good Data and find centroid
+        pass
+
+    def trainBadData(self):
+        #Train Bad Data and find centroid
+        pass
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
