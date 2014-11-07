@@ -7,6 +7,7 @@ import time
 
 oldGlobalTypeCounter = {}
 globalTypeCounter = {}
+oldPerSwitchTypeCounter = {}
 perSwitchTypeCounter = {}
 PERIOD = 120
 
@@ -37,14 +38,26 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 oldGlobalTypeCounter[type] = globalTypeCounter[type]
         else:
             change = {}
-            for type in oldGlobalTypeCounter:
-                change[type] = globalTypeCounter[type] - oldGlobalTypeCounter[type]
-        for type in  globalTypeCounter:
-            oldGlobalTypeCounter[type] = globalTypeCounter[type]
+            for typ in oldGlobalTypeCounter:
+                change[typ] = globalTypeCounter[typ] - oldGlobalTypeCounter[typ]
+        for typ in  globalTypeCounter:
+            oldGlobalTypeCounter[typ] = globalTypeCounter[typ]
 
     #This routine does the temporal analysis of switch statistics of OF messages
     def switchTemporalAnalysis(self):
-        pass
+        global oldPerSwitchTypeCounter, perSwitchTypeCounter
+        if self.count == 0:
+            for sw in perSwitchTypeCounter:
+                oldPerSwitchTypeCounter[sw] = {}
+                for typ in perSwitchTypeCounter[sw]:
+                    oldPerSwitchTypeCounter[sw][typ] = perSwitchTypeCounter[sw][typ]
+        else:
+            change = {}
+            for sw in oldPerSwitchTypeCounter:
+                change[sw] = {}
+                for typ in oldPerSwitchTypeCounter:
+                    change[sw][typ] = perSwitchTypeCounter[sw][typ] - oldPerSwitchTypeCounter[sw][typ]
+
 
     #This does the correlation of each switch with rest of the switches
     def temporalCorrelation(self):
