@@ -3,6 +3,7 @@ import socketserver
 import netifaces as ni
 import json
 import time
+import DataClassifier
 from sklearn.cluster import KMeans
 
 oldGlobalTypeCounter = {}
@@ -11,11 +12,12 @@ oldPerSwitchTypeCounter = {}
 perSwitchTypeCounter = {}
 PERIOD = 120
 
-
 class OFMsgClassifier():
 
     def __init__(self):
         self.cluster = Cluster()
+        self.cluster.trainGoodData()
+        self.cluster.trainBadData()
 
     def findDistance(self, v1, v2):
         types = set(v1.keys())
@@ -28,8 +30,6 @@ class OFMsgClassifier():
         return sumOfSquares
 
     def classify(self, data):
-        self.cluster.trainGoodData()
-        self.cluster.trainBadData()
         distGG = self.findDistance(self.cluster.globalGG, data)
         distBG = self.findDistance(self.cluster.globalBG, data)
         if distGG >= distBG:
@@ -145,12 +145,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 9998
+    PORT = 9998
     # Create the server, binding to localhost on port 9999
-    ni.ifaddresses('wlan0')
-    ip = ni.ifaddresses('wlan0')[2][0]['addr']
-    print (ip)  # should print "192.168.100.37"
-    server = socketserver.TCPServer((ip, PORT), MyTCPHandler)
+    #ni.ifaddresses('wlan0')
+    IP = ni.ifaddresses('wlan0')[2][0]['addr']
+    print ('Listening on ',IP, PORT)
+    server = socketserver.TCPServer((IP, PORT), MyTCPHandler)
+    #Create the OFMsgClassifier
+    classifier = OFMsgClassifier()
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
-    server.serve_forever()
+    server.serve_forever(classifier)
