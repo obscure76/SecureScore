@@ -1,6 +1,6 @@
 __author__ = 'obscure'
+import socketserver
 
-test = {}
 class flowClassifier:
 
     def __init__(self):
@@ -19,12 +19,13 @@ class flowClassifier:
         pass
 
 
-class pktClassifier:
+#This class takes care of packet classification
+class pktClassifier(socketserver.BaseRequestHandler):
 
     def __init__(self):
         pass
 
-    def storePkt(self):
+    def handle(self):
         pass
 
     def trainData(self):
@@ -35,6 +36,7 @@ class pktClassifier:
 
     def assignScores(self):
         pass
+
 
 
 

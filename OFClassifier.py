@@ -145,14 +145,39 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
 
 if __name__ == "__main__":
-    PORT = 9998
+    OFPORT = 9998
+    DPORT = 9997
     # Create the server, binding to localhost on port 9999
     #ni.ifaddresses('wlan0')
-    IP = ni.ifaddresses('wlan0')[2][0]['addr']
-    print ('Listening on ',IP, PORT)
-    server = socketserver.TCPServer((IP, PORT), MyTCPHandler)
+    IP = ni.ifaddresses('eth0')[2][0]['addr']
+    print ('Listening on ',IP, OFPORT)
+    try:
+        OFServer = socketserver.TCPServer((IP, OFPORT), MyTCPHandler)
+    except:
+        print('Cannot start OFServer on ', OFPORT)
+        exit(-1)
+    print ('Listening on ',IP, DPORT)
+    try:
+        dataServer = socketserver.TCPServer((IP, DPORT), DataClassifier.pktClassifier)
+    except:
+        print('Cannot start DataServer on', DPORT)
+        OFServer.server_close()
+        exit(-1)
     #Create the OFMsgClassifier
-    classifier = OFMsgClassifier()
+    try:
+        classifier = OFMsgClassifier()
+        OFServer.serve_forever(classifier)
+    except:
+        print('Could not server forever on ', OFPORT)
+        OFServer.server_close()
+        dataServer.server_close()
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
-    server.serve_forever(classifier)
+    try:
+        pktClassifier = DataClassifier.pktClassifier()
+        dataServer.serve_forever(pktClassifier)
+    except:
+        print('Could not serve forever on ', DPORT)
+        OFServer.server_close()
+        dataServer.server_close()
+
