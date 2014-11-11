@@ -5,7 +5,7 @@ import json
 fields = {'vlan', 'len', 'data_length', 'type', 'nw_src', 'nw_dst', 'icmp_type', 'icmp_code', 'nw_tos', 'nw_proto'}
 gPkts = list()
 lPkts = {'ARP':list, 'ICMP':list, 'IPV4':list}
-flows = dict()
+
 hosts = dict()
 
 
@@ -16,7 +16,7 @@ class Host:
 
 
 class FlowClassifier:
-
+    flows = dict()
     def __init__(self, src, dst):
         self.src = src
         self.dst = dst
@@ -28,6 +28,9 @@ class FlowClassifier:
         pass
 
     def classify(self):
+        pass
+
+    def getScore(self):
         pass
 
     def assignScore(self):
@@ -49,12 +52,12 @@ class PktClassifier(socketserver.BaseRequestHandler):
         print(data)
         j = json.loads(data)
         for k in j:
-            print(k,j[k])
+            print(k, j[k])
         j = json.loads(data)
         curr = {}
         for f in fields:
             if f in j:
-                curr[f]= j[f]
+                curr[f] = j[f]
             else:
                 curr[f] = None
         gPkts.append(curr)
@@ -64,7 +67,12 @@ class PktClassifier(socketserver.BaseRequestHandler):
             if j['type'] != 'ICMP':
                 src = j['nw_src']
                 dst = j['nw_dst']
-                
+                key = str(src) + str(dst)
+                if key not in FlowClassifier.flows:
+                    FlowClassifier.flows[key] = 0
+                else:
+                    FlowClassifier.flows[key] += 0.2 #Update score
+
 
     def trainData(self):
         #Select features
@@ -72,6 +80,9 @@ class PktClassifier(socketserver.BaseRequestHandler):
 
     def classify(self, pkt):
         #Using the filter after training classify the current pkt
+        pass
+
+    def getScore(self):
         pass
 
     def assignScores(self, pkt):
