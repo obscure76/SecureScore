@@ -17,8 +17,9 @@ class Host:
 
 class FlowClassifier:
 
-    def __init__(self):
-        pass
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
 
     def storeFlow(self,pkt):
         pass
@@ -60,6 +61,10 @@ class PktClassifier(socketserver.BaseRequestHandler):
         if j['type'] == 'ARP' or j['type'] == 'ICMP' or j['type'] == 'IPV4':
             lPkts[j['type']].append(curr)
             self.assignScores(curr)
+            if j['type'] != 'ICMP':
+                src = j['nw_src']
+                dst = j['nw_dst']
+                
 
     def trainData(self):
         #Select features
