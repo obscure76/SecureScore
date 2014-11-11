@@ -3,55 +3,24 @@ import socketserver
 import json
 
 fields = {'vlan', 'len', 'data_length', 'type', 'nw_src', 'nw_dst', 'icmp_type', 'icmp_code', 'nw_tos', 'nw_proto'}
-
-'''
-sb.append("{");
-    	                    	sb.append("\"Vlan\":");
-    	                    	sb.append(eth.getVlanID());
-    	                    	sb.append(",\"Len\":");
-    	                    	sb.append(pi.getLengthU());
-    	                    	sb.append(",\"data_length\":");
-    	                    	sb.append(pi.getTotalLength() - OFPacketIn.MINIMUM_LENGTH);
-    	                    	if (pkt instanceof ARP) {
-    	                    		ARP p = (ARP) pkt;
-        	                    	sb.append("\"Type\":");
-        	                    	sb.append("\"ARP\"");
-    	                    		sb.append(",\"nw_src\":");
-    	                    		sb.append(IPv4.fromIPv4Address(IPv4.toIPv4Address(p.getSenderProtocolAddress())));
-    	                    		sb.append(",\"nw_dst\":");
-    	                    		sb.append(IPv4.fromIPv4Address(IPv4.toIPv4Address(p.getTargetProtocolAddress())));
-    	                    	}
-    	                    	else if (pkt instanceof ICMP) {
-    	                    		ICMP icmp = (ICMP) pkt;
-    	                    		sb.append("\"Type\":");
-        	                    	sb.append("\"ICMP\"");
-    	                    		sb.append(",\"icmp_type\":");
-    	                    		sb.append(icmp.getIcmpType());
-    	                    		sb.append(",\"icmp_code\":");
-    	                    		sb.append(icmp.getIcmpCode());
-    	                    	}
-    	                    	else if (pkt instanceof IPv4) {
-    	                    		IPv4 p = (IPv4) pkt;
-    	                    		sb.append("\"Type\":");
-        	                    	sb.append("\"IPV4\"");
-    	                    		sb.append(",\"nw_src\":");
-    	                    		sb.append(IPv4.fromIPv4Address(p.getSourceAddress()));
-    	                    		sb.append(",\"nw_dst\":");
-    	                    		sb.append(IPv4.fromIPv4Address(p.getDestinationAddress()));
-    	                    		sb.append(",\"nw_tos\":");
-    	                    		sb.append(p.getDiffServ());
-    	                    		sb.append(",\"nw_proto\":");
-    	                    		sb.append(p.getProtocol());
-    	                    	}
-'''
+gPkts = list()
+lPkts = {'ARP':list, 'ICMP':list, 'IPV4':list}
+flows = dict()
+hosts = dict()
 
 
-class flowClassifier:
+class Host:
+
+    def __init__(self, ip):
+        self.ip = ip
+
+
+class FlowClassifier:
 
     def __init__(self):
         pass
 
-    def storeFlow(self):
+    def storeFlow(self,pkt):
         pass
 
     def trainData(self):
@@ -65,7 +34,7 @@ class flowClassifier:
 
 
 #This class takes care of packet classification
-class pktClassifier(socketserver.BaseRequestHandler):
+class PktClassifier(socketserver.BaseRequestHandler):
 
     def __init__(self):
         pass
@@ -87,16 +56,26 @@ class pktClassifier(socketserver.BaseRequestHandler):
                 curr[f]= j[f]
             else:
                 curr[f] = None
+        gPkts.append(curr)
+        if j['type'] == 'ARP' or j['type'] == 'ICMP' or j['type'] == 'IPV4':
+            lPkts[j['type']].append(curr)
+            self.assignScores(curr)
 
     def trainData(self):
+        #Select features
         pass
 
-    def classify(self):
+    def classify(self, pkt):
+        #Using the filter after training classify the current pkt
         pass
 
-    def assignScores(self):
-        pass
-
+    def assignScores(self, pkt):
+        globals()
+        if pkt['nw_src'] not in hosts:
+            h = Host(pkt['nw_src'])
+            hosts[pkt['nw_src']] = 0
+        else:
+            hosts[pkt['nw_src']] += 0.2 #Calc Score
 
 
 
