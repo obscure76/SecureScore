@@ -3,7 +3,7 @@ import socket
 import sys
 import netifaces as ni
 
-PORT =  9999
+PORT = 9998
 data = " ".join(sys.argv[1:])
 
 ni.ifaddresses('eth0')
