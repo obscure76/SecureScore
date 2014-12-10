@@ -1,3 +1,16 @@
+* A reseach paper quality final report. Remember the grade of projects will be based on the following factors: novelty, depth, correctness, clarity of presentation, and effort. 
+
+* Contribution split among all team members.
+
+* The final presentation slides.
+
+* All program source code and data generated in this project. If some data are too big, please provide a link/place to download/retrieve.
+
+Missing any material will be subject to penalty. 
+
+
+
+
 OpenFlow(a switching technology) is getting popular day by day. OpenFlow Protocol has caught the interest of Network device manufacturers, vendors and administrators. This is because of its flexible nature in supporting different innovative protocols without getting to know the details implementation of the manufacturer code. Software-Defined Networking (SDN), a network that can be configured and managed from a centralized point called controller and used the OpenFlow technology to communicate between the controller and the network device. SDN has provided a new paradigm for providing flexibility and programmability to conventional
 Networking. With shift of control plane from distributed to centralized design, the entire network is prone to attack at a single point of network. In addition to external attacks on the centralized Controller, there are some attacks that can be induced by malicious hosts lying inside the network. As part of our work, we explored some new attacks on the SDN like ARP (Address Resolution Protocol) broadcast flooding , ping packet with heavy payload , UDP packets with heavy payload and DDoS attacks (Amplification exploiting NTP, DNS servers) targeting any host or link connected to the target host. In order to make the defense adaptive in nature irrespective of protocol, we have used machine learning algorithms and statistics models to fit the data in the best possible way . Our results show that we are able to prevent the most of the attacks using the machine learning technique in the SDN to protect the targeted host.
 
@@ -12,6 +25,7 @@ to learn such patterns and diagnose such attacks in its network and prevent them
 
 
 Motivation:
+Denial of Service (DoS) attacks constitute one of the major threats and among the hardest security problems in today's Internet. Denial of Service (DoS) attacks are undoubtedly a very serious problem in the Internet, whose impact has been well demonstrated in the computer network literature. The main aim of a DoS is the disruption of services by attempting to limit access to a machine or service instead of subverting the service itself. This kind of attack aims at rendering a network incapable of providing normal service by targeting either the network's bandwidth or its connectivity. These attacks achieve their goal by sending at a victim a stream of packets that swamps his network or processing capacity denying access to his regular clients. In the not so distant past, there have been some large-scale attacks targeting high profile Internet sites. Following this section, the paper is organized as follows. Section 3 deals with related work in literature. Section 4 discusses our system design. Section 5 discusses the implementation details of our project. Section 6 focuses on our results. In section 7, we have detailed our conclusions based on our work.  
 
 Related work:
 In the traditional architecture of SDN, the controller has a REST interface to talk to different applications and offer services. However, this ability offers security vulnerability which was addressed through rosemary[1]. AvantGuard [2] secures the controller from external attacks which aim at exhausting CPU of controller with TCP SYN flood attack, malicious scans by hosts in the network and network intrusion detection. However, this does not cover all attacks possible within a SDN and we can exploit the programmability to the controller to security of the SDN as a whole. In [4], there was an entropy based implementation on detecting the anomaly in the SDN and accordingly take appropriate action to mitigate such attack. In [8], there is a discussion on most recent DDOS attacks in the real world network. However, in our work we have first formulated various attacks like DDoS attack, through flooding ARP broadcast packet to unknown host, ping packets with heavy payload by various malicious host (called bot army) to target host, UDP packets with heavy payloads to the target host with random destination port number. Then we have designed a machine learning technique by learning the algorithm using the various SDN features like packet features( Packet Len, Packet Type(ARP,ICMP,LLDP etc), Packet count(per type as well as global count), TCP/UDP, sport/dport), Switch features(Adding all switch Ports combined) , Host ports(Data only) Amplification factor Out(Num of bytes out/ Num of bytes in), Amplification factor In(Num of bytes in/ Num of bytes out), Number of packets Out, Number of packets In Ports to controller(OF only): Number of OF messages sent to controller.
@@ -42,3 +56,6 @@ Results:
 
 Conclusions:
 
+References:
+Seungwon Shin, Yongoo Song, Taekyung Lee, Sangho Lee, Jaewoong Chung, Phillip Porras, Vinod Yegneswaran, Jiseong Noh, Brent Byunghoon, Kang Rosemary  A Robust, Secure, and High-Performance Network Operating System CCS’14, November 3, 2014, Arizona, USA.
+Seungwon Shin, Vinod Yegneswaran, Phillip Porras, Guofei Gu AVANT-GUARD: Scalable and Vigilant Switch Flow Management in Software-Defined Networks CCS’13, November 4–8, 2013, Berlin, Germany.
