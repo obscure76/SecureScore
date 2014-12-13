@@ -114,8 +114,10 @@ class MessageHandler():
          #Paths to datasets
         arpBad = '/home/obscure/PycharmProjects/SecureScore/datasets/arpattack/'
         arpGood = '/home/obscure/PycharmProjects/SecureScore/datasets/arpgood/'
-        udpPath = '/home/obscure/PycharmProjects/SecureScore/datasets/udpattack.pcap'
-        pingPath ='/home/obscure/PycharmProjects/SecureScore/datasets/pingattack.pcap'
+        udpbad = '/home/obscure/PycharmProjects/SecureScore/datasets/udpattack.pcap'
+        udpGood = '/home/obscure/PycharmProjects/SecureScore/datasets/udpGood.pcap'
+        pingbad ='/home/obscure/PycharmProjects/SecureScore/datasets/pingattack/'
+        pingGood ='/home/obscure/PycharmProjects/SecureScore/datasets/pinggood/'
         #print('PATH ', arpBad)
         dc = DataClassifier.DataClassifier()
         # Parse ARP bad files
@@ -125,7 +127,7 @@ class MessageHandler():
                 #print(filePath)
                 dc.parseData(filePath)
         dc.dataToDicts('bad')
-        dc.resetFlows()
+        dc.resetFlows('arp')
         print('len ARP bad dataset', len(DataClassifier.arpDicts))
         # Parse ARP good files
         for root, subFolders, files in os.walk(arpGood):
@@ -135,15 +137,36 @@ class MessageHandler():
                 dc.parseData(filePath)
         dc.dataToDicts('good')
         print('len ARP dataset', len(DataClassifier.arpDicts))
-        arpX, arpY = dc.vectorizeTestSets()
+        arpX, arpY = dc.vectorizeTestSets('arp')
         print(arpX.shape,  len(arpY))
-        dc.trainData(arpX, arpY)
-        dc.resetFlows()
+        dc.trainData(arpX, arpY, 'arp')
+        dc.resetFlows('arp')
         '''
         testFlowList = [{'src' : '10.0.0.1', 'dst' : '10.0.0.2', 'len' : '42', 'type' : 'ARP', 't1' : 0,
                      't2' : 0, 't3' :0, 't4' : 0, 't5' :0}]
         testX = dc.vectorize(testFlowList)
         print(dc.predict(testX))'''
+        # Parse ICMP bad files
+        for root, subFolders, files in os.walk(pingbad):
+            for filename in files:
+                filePath = os.path.join(root, filename)
+                #print(filePath)
+                dc.parseData(filePath)
+        dc.dataToDicts('bad')
+        dc.resetFlows('icmp')
+        print('len ICMP bad dataset', len(DataClassifier.icmpDicts))
+        # Parse ARP good files
+        for root, subFolders, files in os.walk(pingGood):
+            for filename in files:
+                filePath = os.path.join(root, filename)
+                #print(filePath)
+                dc.parseData(filePath)
+        dc.dataToDicts('good')
+        print('len ICMP dataset', len(DataClassifier.icmpDicts))
+        icmpX, icmpY = dc.vectorizeTestSets('icmp')
+        print(icmpX.shape,  len(icmpY))
+        dc.trainData(icmpX, icmpY, 'icmp')
+        dc.resetFlows('icmp')
 
     #This handles every pkt info received as json from the controller
     def handle(self, pkt):

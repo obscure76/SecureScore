@@ -22,11 +22,17 @@ arpY = list()
 icmpY = list()
 ipY = list()
 hosts = dict()
-vec = DictVectorizer()
-clfsvm = svm.LinearSVC(C=30.0)
+vecARP = DictVectorizer()
+clfsvmARP = svm.LinearSVC(C=30.0)
+vecICMP = DictVectorizer()
+clfsvmICMP = svm.LinearSVC(C=30.0)
+vecUDP = DictVectorizer()
+clfsvmUDP = svm.LinearSVC(C=30.0)
+
 
 def ether_decode(p):
     return ':'.join(['%02x' % ord(x) for x in str(p)])
+
 
 class Host:
 
@@ -137,7 +143,7 @@ class DataClassifier():
                         else:
                             ldict = list()
                             self.covertToDicts([f], ldict)
-                            tX = self.vectorize(ldict)
+                            tX = self.vectorize(ldict,'arp')
                             if self.predict(tX)[0] == 'bad' and f.match ==0:
                                 print 'ARP broadcast attack detected'
                                 f.match = 1
@@ -150,15 +156,61 @@ class DataClassifier():
             perTypePkts[dd['type']].append(curr)
             perTypePkts['ICMP'].append(curr)
             self.assignScores(curr)
-            if dd['type'] != 'ICMP':
-                src = dd['nw_src']
-                dst = dd['nw_dst']
-                key = str(src) + str(dst)
-                if key not in FlowClassifier.flows:
-                    FlowClassifier.flows[key] = 0
-                else:
-                    #Update score
-                    FlowClassifier.flows[key] += 0.2
+            src = dd['nw_src']
+            dst = dd['nw_dst']
+            key = str(src) + str(dst)
+            if key not in FlowClassifier.flows:
+                FlowClassifier.flows[key] = 0
+            else:
+                #Update score
+                FlowClassifier.flows[key] += 0.2
+            tempFlow = Flow(dd['nw_src'], dd['nw_dst'], dd['type'])
+            match = 0
+            for f in arpFlows:
+                if tempFlow.equals(f):
+                    match = 1
+                    if tempFlow.equals(f):
+                        match = 1
+                        if f.t2 == 0:
+                            if time.time() - f.lastSeen > 5:
+                                f.t1 = 0
+                                f.lastSeen = time.time()
+                            else:
+                                f.t2 = time.time() - f.lastSeen
+                            continue
+                        elif f.t3 == 0:
+                            if time.time() - f.lastSeen > 5:
+                                f.t1 = f.t2 = 0
+                                f.lastSeen = time.time()
+                            else:
+                                f.t3 = time.time() - f.lastSeen
+                            continue
+                        elif f.t4 == 0:
+                            if time.time() - f.lastSeen > 5:
+                                f.t1 = f.t2 = f.t3 = 0
+                                f.lastSeen = time.time()
+                            else:
+                                f.t4 = time.time() - f.lastSeen
+                            continue
+                        elif f.t5 == 0:
+                            if time.time() - f.lastSeen > 5:
+                                f.t1 = f.t2 = f.t3 = f.t4 = 0
+                                f.lastSeen = time.time()
+                            else:
+                                f.t5 = time.time() - f.lastSeen
+                            continue
+                        else:
+                            ldict = list()
+                            self.covertToDicts([f], ldict)
+                            tX = self.vectorize(ldict,'icmp')
+                            if self.predict(tX)[0] == 'bad' and f.match == 0:
+                                print 'ICMP attack detected'
+                                f.match = 1
+            if match == 0:
+                tempFlow.t1 = 0
+                tempFlow.lastSeen = time.time()
+                tempFlow.len = dd['len']
+                icmpFlows.append(tempFlow)
         if dd['type'] == 'IPV4':
             pass
         else:
@@ -319,37 +371,72 @@ class DataClassifier():
         for x in ipFlows:
             ipY.append(state)
 
-    def resetFlows(self):
-        del arpFlows[:]
-        del icmpFlows[:]
-        del ipFlows[:]
+    def resetFlows(self, ethtype):
+        if ethtype == 'arp':
+            del arpFlows[:]
+        if ethtype == 'icmp':
+            del icmpFlows[:]
+        if ethtype == 'udp':
+            del ipFlows[:]
 
     def printARP(self):
         print(len(arpFlows), len(arpDicts))
 
-    def vectorizeTestSets(self):
-        arpX = vec.fit_transform(arpDicts)
+    def vectorizeTestSets(self, ethtype):
+        if ethtype == 'arp':
+            arpX = vecARP.fit_transform(arpDicts)
+            return arpX, arpY
+        if ethtype == 'icmp':
+            icmpX = vecICMP.fit_transform(icmpDicts)
+            return icmpX, icmpY
+        if ethtype == 'udp':
+            ipX = vecUDP.fit_transform(ipDicts)
+            return ipX, ipY
         #print(vec.get_feature_names())
-        print(vec)
-        return arpX, arpY
 
-    def vectorize(self, nList):
-        fnames = vec.get_feature_names()
+    def vectorize(self, nList, ethtype):
+        if ethtype == 'arp':
+            fnames = vecARP.get_feature_names()
+        if ethtype == 'icmp':
+            fnames = vecICMP.get_feature_names()
+        if ethtype == 'udp':
+            fnames = vecUDP.get_feature_names()
         for f in fnames:
             if f not in flow_attr:
                 nList[0][f] = 0
-        arpX = vec.fit_transform(nList)
-        print(arpX.shape)
-        return arpX
+        if ethtype == 'arp':
+            X = vecARP.fit_transform(nList)
+            #print(arpX.shape)
+            return X
+        if ethtype == 'icmp':
+            X = vecICMP.fit_transform(nList)
+            #print(arpX.shape)
+            return X
+        if ethtype == 'udp':
+            X = vecUDP.fit_transform(nList)
+            #print(arpX.shape)
+            return X
 
-    def trainData(self, X, Y):
+    def trainData(self, X, Y, ethtype):
         globals()
-        clfsvm.fit(X, Y)
-        print(clfsvm)
+        if ethtype == 'arp':
+            clfsvmARP.fit(X, Y)
+            print(clfsvmARP)
+        if ethtype == 'icmp':
+            clfsvmICMP.fit(X, Y)
+            print(clfsvmICMP)
+        if ethtype == 'udp':
+            clfsvmUDP.fit(X, Y)
+            print(clfsvmUDP)
 
-    def predict(self, X):
+    def predict(self, X, ethtype):
         #Using the filter after training classify the current pkt
-        return clfsvm.predict(X)
+        if ethtype == 'arp':
+            return clfsvmARP.predict(X)
+        if ethtype == 'icmp':
+            return clfsvmICMP.predict(X)
+        if ethtype == 'udp':
+            return clfsvmUDP.predict(X)
 
     def assignScores(self, pkt):
         globals()
